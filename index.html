@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .view-port {
+            margin: 0;
+            padding: 0;
+            width: 500px;
+            height: 300px;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            overflow: hidden;
+        }
+
+        .images-container {
+            margin: 0;
+            padding: 0;
+            width: inherit;
+            height: inherit;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .card {
+            margin: 0;
+            padding: 0;
+            width: inherit;
+            height: inherit;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .card-img {
+            max-width: 100%;
+            max-height: 100%;
+
+            position: relative;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .touch-area {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 300px;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            /* background-color: rgba(255, 0, 0, 0.2); */
+            z-index: 9999;
+        }
+
+        .nav-buttons-container {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+
+            /* background-color: rgba(0, 0, 255, 0.3); */
+            z-index: 99999;
+            pointer-events: none;
+        }
+
+        .nav-buttons {
+            width: 50%;
+            cursor: pointer;
+            pointer-events: all;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <button id="prev">Prev</button>
+    <button id="next">Next</button> -->
+    <div class="touch-area"></div>
+
+    <div class="nav-buttons-container">
+        <img src="./prev.png" alt="prev" class="nav-buttons" id="prev">
+        <img src="./next.png" alt="next" class="nav-buttons" id="next">
+    </div>
+
+    <div class="view-port">
+        <div class="images-container">
+            <div class="card" id="one"><img class="card-img" src="https://picsum.photos/800/350" /></div>
+            <div class="card" id="two"><img class="card-img" src="https://picsum.photos/800/352" /></div>
+            <div class="card" id="three"><img class="card-img" src="https://picsum.photos/800/354" /></div>
+        </div>
+    </div>
+
+    <script>
+        const view_port = document.querySelector('.view-port'),
+            images = document.querySelector('.images-container'),
+            card_width = parseFloat(getComputedStyle(images.children[0]).width),
+            button_prev = document.querySelector('#prev'),
+            button_next = document.querySelector('#next'),
+            button_container = document.querySelector('.nav-buttons-container');
+        let new_width = 0.0;
+        const number_of_cards_by_index = images.children.length - 1,
+            middle_card_by_index = Math.floor(number_of_cards_by_index / 2);
+
+        /* ***************** RESPONSIVE CODE ***************** */
+        let img_width_as_percentage = 50;
+        img_width_as_percentage = window.innerWidth < 768 ? 100 : img_width_as_percentage;
+        let buttons_placement_as_percentage = 60;
+        buttons_placement_as_percentage = window.innerWidth < 768 ? 100 : buttons_placement_as_percentage;
+
+        new_width =
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ?
+            (img_width_as_percentage / 100) * screen.width :
+            (img_width_as_percentage / 100) * window.innerWidth;
+
+        view_port.style.width = `${new_width}px`;
+        button_container.style.width = `${buttons_placement_as_percentage}vw`;
+        button_prev.style.width = `${(new_width / 2) * 0.30}px`;
+        button_next.style.width = `${(new_width / 2) * 0.30}px`;
+
+
+        window.addEventListener('resize', () => {
+            img_width_as_percentage = 50;
+            img_width_as_percentage = window.innerWidth < 768 ? 100 : img_width_as_percentage;
+            buttons_placement_as_percentage = 60;
+            buttons_placement_as_percentage = window.innerWidth < 768 ? 100 : buttons_placement_as_percentage;
+
+            new_width =
+                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ?
+                (img_width_as_percentage / 100) * screen.width :
+                (img_width_as_percentage / 100) * window.innerWidth;
+
+            view_port.style.width = `${new_width}px`;
+            button_container.style.width = `${buttons_placement_as_percentage}vw`;
+            button_prev.style.width = `${(new_width / 2) * 0.30}px`;
+            button_next.style.width = `${(new_width / 2) * 0.30}px`;
+
+            order_cards();
+
+            right_boundary = parseFloat(images.children[number_of_cards_by_index].style.left) + new_width;
+            left_boundary = parseFloat(images.children[0].style.left) - new_width;
+
+            for (let i = 0; i < images.children.length; i++) {
+                last_positions[i] = parseFloat(images.children[i].style.left);
+            }
+        });
+        /* *************************************************** */
+
+        function order_cards() {
+            let counter_for_right = 1,
+                counter_for_left = middle_card_by_index;
+
+            for (let i = 0; i < images.children.length; i++) {
+                images.children[i].style.transitionDuration = '0.0s';
+
+                if (i < middle_card_by_index) {
+                    images.children[i].style.left = `-${(counter_for_left * new_width) - (new_width / 2)}px`;
+                    counter_for_left--;
+                } else if (i > middle_card_by_index) {
+                    images.children[i].style.left = `${(counter_for_right * new_width) + (new_width / 2)}px`;
+                    counter_for_right++;
+                } else {
+                    images.children[i].style.left = `${new_width / 2}px`;
+                }
+            }
+        }
+
+        order_cards();
+
+        function handle_boundaries() {
+            if (last_positions[number_of_cards_by_index] >= right_boundary) {
+                const beginning_of_deck = last_positions[0] - new_width;
+                images.children[number_of_cards_by_index].style.left = `${beginning_of_deck}px`;
+                last_positions[number_of_cards_by_index] = beginning_of_deck;
+
+                images.insertBefore(images.children[number_of_cards_by_index], images.children[0]);
+                last_positions.splice(0, 0, last_positions.pop());
+            }
+            if (last_positions[0] <= left_boundary) {
+                const end_of_deck = last_positions[number_of_cards_by_index] + new_width;
+                images.children[0].style.left = `${end_of_deck}px`;
+                last_positions[0] = end_of_deck;
+
+                images.appendChild(images.children[0], images.children[number_of_cards_by_index]);
+                last_positions.splice(number_of_cards_by_index, 0, last_positions.shift());
+            }
+        }
+
+        let snap_in_progress = false,
+            distance_to_scroll = 0.0,
+            seed = 0.0;
+        const snap_speed_modifier = 0.05;
+
+        function snap_back() {
+            snap_in_progress = true;
+
+            const adjusted_positions = last_positions.map(position => Math.abs(position - (new_width / 2)));
+            const index_of_closest_card = adjusted_positions.indexOf(Math.min(...adjusted_positions));
+
+            distance_to_scroll = adjusted_positions[index_of_closest_card] *
+                (last_positions[index_of_closest_card] > (new_width / 2) ? -1.0 : 1.0);
+
+            animate_snap();
+        }
+
+        function animate_snap() {
+            seed = parseFloat(seed.toFixed(2));
+
+            let percentage_to_move = Math.pow(seed, 2.0);
+            percentage_to_move = parseFloat(percentage_to_move.toFixed(2));
+
+            if (seed > 1) {
+                snap_in_progress = false;
+                seed = 0.0;
+
+                for (let i = 0; i < images.children.length; i++) {
+                    updated_position = last_positions[i] + distance_to_scroll;
+                    images.children[i].style.left = `${updated_position}px`;
+                    last_positions[i] = updated_position;
+                }
+
+                handle_boundaries();
+
+                return;
+            }
+
+            for (let i = 0; i < images.children.length; i++) {
+                updated_position = last_positions[i] + (percentage_to_move * distance_to_scroll);
+                images.children[i].style.left = `${updated_position}px`;
+            }
+
+            seed += 1 * snap_speed_modifier;
+            requestAnimationFrame(animate_snap);
+        }
+
+        /* ***************** TOUCH NAVIGATION **************** */
+        const touch_area = document.querySelector('.touch-area');
+        let start_touch_position = 0.0,
+            updated_position = 0.0,
+            difference = 0.0,
+            speed_modifier = 0.8;
+        const last_positions = [];
+        let right_boundary = parseFloat(images.children[number_of_cards_by_index].style.left) + new_width,
+            left_boundary = parseFloat(images.children[0].style.left) - new_width;
+
+        for (let i = 0; i < images.children.length; i++) {
+            last_positions.push(parseFloat(images.children[i].style.left));
+        }
+
+        touch_area.addEventListener('touchstart', event => {
+            if (snap_in_progress) return;
+
+            start_touch_position = event.changedTouches[0].screenX;
+
+            for (let i = 0; i < images.children.length; i++) {
+                images.children[i].style.transitionDuration = '0.0s';
+            }
+        });
+
+        touch_area.addEventListener('touchmove', event => {
+            event.preventDefault();
+            if (snap_in_progress) return;
+
+            const current_touch_position = event.changedTouches[0].screenX;
+            difference = current_touch_position - start_touch_position;
+            difference *= speed_modifier;
+            start_touch_position = current_touch_position;
+
+            for (let i = 0; i < images.children.length; i++) {
+                updated_position = last_positions[i] + difference;
+                images.children[i].style.left = `${updated_position}px`;
+                last_positions[i] = updated_position;
+            }
+
+            handle_boundaries();
+        });
+
+        touch_area.addEventListener('touchend', () => {
+            if (snap_in_progress) return;
+
+            snap_back();
+        });
+        /* *************************************************** */
+
+        /* **************** BUTTON NAVIGATION **************** */
+        let scroll_in_progress = false;
+
+        button_next.addEventListener('click', () => {
+            if (scroll_in_progress || snap_in_progress) return;
+            scroll_in_progress = true;
+
+            for (let i = 0; i < images.children.length; i++) {
+                updated_position = last_positions[i] + new_width;
+                images.children[i].style.transitionDuration = '0.5s';
+                images.children[i].style.left = `${updated_position}px`;
+                last_positions[i] = updated_position;
+            }
+
+            handle_boundaries();
+
+            setTimeout(() => {
+                scroll_in_progress = false;
+            }, 500);
+        });
+
+        button_prev.addEventListener('click', () => {
+            if (scroll_in_progress || snap_in_progress) return;
+            scroll_in_progress = true;
+
+            for (let i = 0; i < images.children.length; i++) {
+                updated_position = last_positions[i] - new_width;
+                images.children[i].style.transitionDuration = '0.5s';
+                images.children[i].style.left = `${updated_position}px`;
+                last_positions[i] = updated_position;
+            }
+
+            handle_boundaries();
+
+            setTimeout(() => {
+                scroll_in_progress = false;
+            }, 500);
+        });
+        /* *************************************************** */
+
+        /* ***************** WHEEL NAVIGATION **************** */
+        let mouse_over = false,
+            wheel_timeout_id = null;
+
+        touch_area.addEventListener('mouseover', () => {
+            mouse_over = true;
+
+            for (let i = 0; i < images.children.length; i++) {
+                images.children[i].style.transitionDuration = '0.0s';
+            }
+        });
+
+        touch_area.addEventListener('mouseleave', () => {
+            mouse_over = false;
+        });
+
+        touch_area.addEventListener('wheel', event => {
+            event.preventDefault();
+
+            if (snap_in_progress) return;
+            clearTimeout(wheel_timeout_id);
+
+            if (mouse_over) {
+                for (let i = 0; i < images.children.length; i++) {
+                    updated_position = last_positions[i] - (event.deltaY * 0.2);
+                    images.children[i].style.left = `${updated_position}px`;
+                    last_positions[i] = updated_position;
+                }
+
+                handle_boundaries();
+
+                wheel_timeout_id = setTimeout(() => {
+                    snap_back();
+                }, 100);
+            }
+        });
+        /* *************************************************** */
+    </script>
+</body>
+
+</html>
