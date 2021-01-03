@@ -199,7 +199,7 @@
         order_cards();
 
         function handle_boundaries() {
-            if (last_positions[number_of_cards_by_index] >= right_boundary) {
+            if (Math.round(last_positions[number_of_cards_by_index]) >= right_boundary) {
                 const beginning_of_deck = last_positions[0] - new_width;
                 images.children[number_of_cards_by_index].style.left = `${beginning_of_deck}px`;
                 last_positions[number_of_cards_by_index] = beginning_of_deck;
@@ -207,7 +207,7 @@
                 images.insertBefore(images.children[number_of_cards_by_index], images.children[0]);
                 last_positions.splice(0, 0, last_positions.pop());
             }
-            if (last_positions[0] <= left_boundary) {
+            if (Math.round(last_positions[0]) <= left_boundary) {
                 const end_of_deck = last_positions[number_of_cards_by_index] + new_width;
                 images.children[0].style.left = `${end_of_deck}px`;
                 last_positions[0] = end_of_deck;
